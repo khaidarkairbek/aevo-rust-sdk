@@ -1,8 +1,8 @@
-mod aevo; 
-mod secret;
-mod env; 
-mod signature; 
-mod rest; 
+pub mod aevo; 
+pub mod secret;
+pub mod env; 
+pub mod signature; 
+pub mod rest; 
 
 #[cfg(test)]
 mod tests {
