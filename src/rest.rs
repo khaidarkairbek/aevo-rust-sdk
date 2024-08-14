@@ -196,79 +196,79 @@ pub enum MarketInfo {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Greeks {
-    delta : String, 
-    theta : String, 
-    gamma : String, 
-    rho : String, 
-    vega : String, 
-    iv : String
+    pub delta : String, 
+    pub theta : String, 
+    pub  gamma : String, 
+    pub rho : String, 
+    pub vega : String, 
+    pub iv : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct PortfolioGreeks {
-    asset : String, 
-    delta : String, 
-    theta : String, 
-    gamma : String, 
-    rho : String, 
-    vega : String,
+    pub asset : String, 
+    pub delta : String, 
+    pub theta : String, 
+    pub gamma : String, 
+    pub rho : String, 
+    pub vega : String,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct SigningKeyInfo {
-    signing_key : String, 
-    expiry : String, 
-    created_timestamp : String
+    pub signing_key : String, 
+    pub expiry : String, 
+    pub created_timestamp : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct ApiKeyInfo {
-    api_key : String, 
-    read_only : bool, 
-    created_timestamp : String
+    pub api_key : String, 
+    pub read_only : bool, 
+    pub created_timestamp : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct FeeStructureInfo {
-    asset : String, 
-    instrument_type : String, 
-    taker_fee : String, 
-    maker_fee : String
+    pub asset : String, 
+    pub instrument_type : String, 
+    pub taker_fee : String, 
+    pub maker_fee : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct LeverageInfo {
-    instrument_id : String, 
-    leverage : String, 
-    margin_type : String  // Cross or Margin 
+    pub instrument_id : String, 
+    pub leverage : String, 
+    pub margin_type : String  // Cross or Margin 
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct UsedMarginInfo {
-    used : String, 
-    balance : String
+    pub used : String, 
+    pub balance : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct ManualWithdrawalInfo {
-    account : String, 
-    amount : String, 
-    chain_id : String, 
-    collateral : String, 
-    withdrawal_id : String, 
-    to : String, 
-    label : String
+    pub account : String, 
+    pub amount : String, 
+    pub chain_id : String, 
+    pub collateral : String, 
+    pub withdrawal_id : String, 
+    pub to : String, 
+    pub label : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct CollateralInfo {
-    collateral_asset : String, 
-    balance: String, 
-    available_balance: String, 
-    withdrawable_balance : String, 
-    margin_value : String, 
-    collateral_value : String, 
-    collateral_yield_bearing : bool
+    pub collateral_asset : String, 
+    pub balance: String, 
+    pub available_balance: String, 
+    pub withdrawable_balance : String, 
+    pub margin_value : String, 
+    pub collateral_value : String, 
+    pub collateral_yield_bearing : bool
 }
 
 impl AevoClient {

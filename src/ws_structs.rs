@@ -145,94 +145,94 @@ pub enum WsResponseData {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Position {
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    amount : String, 
-    mark_price : String, 
-    option : Option<OptionData>, 
-    asset : String, 
-    side : String, 
-    avg_entry_price : String, 
-    unrealized_pnl : String, 
-    maintenance_margin : String
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub amount : String, 
+    pub mark_price : String, 
+    pub option : Option<OptionData>, 
+    pub asset : String, 
+    pub side : String, 
+    pub avg_entry_price : String, 
+    pub unrealized_pnl : String, 
+    pub maintenance_margin : String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OptionData {
-    strike : String, 
-    option_type : String, 
-    expiry : String, 
-    iv : String, 
-    delta : String, 
-    theta : String, 
-    rho : String, 
-    vega : String
+    pub strike : String, 
+    pub option_type : String, 
+    pub expiry : String, 
+    pub iv : String, 
+    pub delta : String, 
+    pub theta : String, 
+    pub rho : String, 
+    pub vega : String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Fill {
-    trade_id : String, 
-    order_id : String, 
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    price : String, 
-    side : String, 
-    fees : String, 
-    filled : String, 
-    order_status : String, 
-    liquidity : String, 
-    created_timestamp : String, 
-    system_type : String
+    pub trade_id : String, 
+    pub order_id : String, 
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub price : String, 
+    pub side : String, 
+    pub fees : String, 
+    pub filled : String, 
+    pub order_status : String, 
+    pub liquidity : String, 
+    pub created_timestamp : String, 
+    pub system_type : String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Order {
-    order_id : String, 
-    account : String, 
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    order_type : String, 
-    side : String, 
-    price : String, 
-    amount : String, 
-    filled : String, 
-    order_status : String, 
-    created_timestamp : String, 
-    system_type : String
+    pub order_id : String, 
+    pub account : String, 
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub order_type : String, 
+    pub side : String, 
+    pub price : String, 
+    pub amount : String, 
+    pub filled : String, 
+    pub order_status : String, 
+    pub created_timestamp : String, 
+    pub system_type : String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BookTicker {
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    bid : PriceLevel, 
-    ask : PriceLevel
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub bid : PriceLevel, 
+    pub ask : PriceLevel
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ticker {
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    funding_rate : String, 
-    next_funding_rate : String, 
-    mark : PriceLevel, 
-    bid : PriceLevel, 
-    ask : PriceLevel
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub funding_rate : String, 
+    pub next_funding_rate : String, 
+    pub mark : PriceLevel, 
+    pub  bid : PriceLevel, 
+    pub ask : PriceLevel
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PriceLevel {
-    price : String, 
-    delta : Option<String>, 
-    theta : Option<String>, 
-    gamma : Option<String>, 
-    rho : Option<String>, 
-    vega : Option<String>, 
-    iv : Option<String>, 
-    amount : Option<String>
+    pub price : String, 
+    pub delta : Option<String>, 
+    pub theta : Option<String>, 
+    pub gamma : Option<String>, 
+    pub rho : Option<String>, 
+    pub vega : Option<String>, 
+    pub iv : Option<String>, 
+    pub amount : Option<String>
 }
