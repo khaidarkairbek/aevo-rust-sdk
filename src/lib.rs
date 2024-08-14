@@ -361,6 +361,41 @@ mod tests {
     }
 
     #[test(tokio::test)]
+    async fn test_subscribe_book_ticker() {
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
+        };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
+
+        client.subscribe_book_ticker("ETH".to_string(), "PERPETUAL".to_string()).await.unwrap(); 
+
+        let (tx, mut rx) = mpsc::unbounded_channel::<WsResponse>();
+
+        let task1 = tokio::spawn(async move {
+            client.read_messages(tx).await.unwrap()
+        });
+
+        let task2 = tokio::spawn(async move {
+            loop {
+                let msg = rx.recv().await; 
+                match msg {
+                    Some(data) => println!("The data: {:?}", data), 
+                    None => {}
+                }
+            }
+        });  
+
+        join!(task1, task2); 
+
+
+    }
+
+    #[test(tokio::test)]
     async fn test_ws_open_order() {
         let credentials = ClientCredentials {
             signing_key : std::env::var("SIGNING_KEY").unwrap(), 

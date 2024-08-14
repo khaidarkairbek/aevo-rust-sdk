@@ -47,7 +47,8 @@ pub enum WsRequestData {
 #[serde(untagged)]
 pub enum WsResponse {
     SubscribeResponse {
-        channel : String, 
+        channel : String,
+        write_ts : Option<String>, 
         data : WsResponseData
     }, 
     PublishResponse {
@@ -227,11 +228,11 @@ pub struct Ticker {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PriceLevel {
     price : String, 
-    delta : String, 
-    theta : String, 
-    gamma : String, 
-    rho : String, 
-    vega : String, 
-    iv : String, 
+    delta : Option<String>, 
+    theta : Option<String>, 
+    gamma : Option<String>, 
+    rho : Option<String>, 
+    vega : Option<String>, 
+    iv : Option<String>, 
     amount : Option<String>
 }
