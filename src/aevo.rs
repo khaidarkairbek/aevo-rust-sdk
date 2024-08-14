@@ -206,36 +206,40 @@ impl AevoClient {
         }
     }
 
-    pub async fn send (&mut self, data: &Message) -> Result<()>{
+    pub async fn send (&self, data: &Message) -> Result<()>{
         let mut attempts = 0; 
         const MAX_ATTEMPTS: u8 = 2; 
         while attempts < MAX_ATTEMPTS {
-            let mut writer_guard = self.writer.lock().await;
-            match writer_guard.as_mut() {
-                Some(connection) => {
-                    match connection.send(data.clone()).await {
-                        Ok(_) => return Ok(()),
-                        Err(e) => {
-                            match e  {
-                                tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed => {
-                                    if attempts == 0 {
-                                        info!("Aevo websocket connection close with error : {}", e);
-                                        self.reconnect().await?;
-                                        attempts += 1; 
-                                        continue; 
-                                    } else {
-                                        return Err(eyre!("Failed to send message after reconnection attempt: {}", e))
-                                    }
-                                }, 
-                                _ => {
-                                    return Err(eyre!("Problem sending message: {}", e))
-                                }
+            let result = {
+                let mut writer_guard = self.writer.lock().await; 
+                match writer_guard.as_mut() {
+                    Some(ws_sink) => {
+                        ws_sink.send(data.clone()).await
+                    }, 
+                    None => {
+                        return Err(eyre!("Connection not established"))
+                    }
+                }
+            }; 
+
+            match result {
+                Ok(_) => return Ok(()),
+                Err(e) => {
+                    match e  {
+                        tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed => {
+                            if attempts == 0 {
+                                info!("Aevo websocket connection close with error : {}", e);
+                                self.reconnect().await?;
+                                attempts += 1; 
+                                continue; 
+                            } else {
+                                return Err(eyre!("Failed to send message after reconnection attempt: {}", e))
                             }
+                        }, 
+                        _ => {
+                            return Err(eyre!("Problem sending message: {}", e))
                         }
                     }
-                }, 
-                None => {
-                    return Err(eyre!("Connection not established"))
                 }
             }
         }
@@ -243,7 +247,7 @@ impl AevoClient {
         Err(eyre!("Failed to send message after maximum attempts"))
     }
 
-    pub async fn subscribe_tickers(&mut self, asset: String) -> Result<()> {
+    pub async fn subscribe_tickers(&self, asset: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![format!("ticker:{}:OPTION", asset)]), 
@@ -254,7 +258,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_ticker(&mut self, channel: String) -> Result<()> {
+    pub async fn subscribe_ticker(&self, channel: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![channel]), 
@@ -265,7 +269,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_markprice(&mut self, asset: String) -> Result<()> {
+    pub async fn subscribe_markprice(&self, asset: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![format!("markprice:{}:OPTION", asset)]), 
@@ -276,7 +280,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_orderbook(&mut self, instrument_name: String) -> Result<()> {
+    pub async fn subscribe_orderbook(&self, instrument_name: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![format!("orderbook:{}", instrument_name)]), 
@@ -287,7 +291,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_trades(&mut self, instrument_name: String) -> Result<()> {
+    pub async fn subscribe_trades(&self, instrument_name: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![format!("orderbook:{}", instrument_name)]), 
@@ -298,7 +302,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_index(&mut self, asset: String) -> Result<()> {
+    pub async fn subscribe_index(&self, asset: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![format!("index:{}", asset)]), 
@@ -309,7 +313,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_orders(&mut self) -> Result<()> {
+    pub async fn subscribe_orders(&self) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec!["orders".to_string()]), 
@@ -320,7 +324,7 @@ impl AevoClient {
         self.send(&msg).await
     }
 
-    pub async fn subscribe_fills(&mut self) -> Result<()> {
+    pub async fn subscribe_fills(&self) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec!["fills".to_string()]), 
@@ -377,7 +381,7 @@ impl AevoClient {
     }
 
     pub async fn create_order(
-        &mut self, 
+        &self, 
         instrument_id: u64,
         is_buy: bool, 
         limit_price: f64, 
@@ -406,7 +410,7 @@ impl AevoClient {
     }
 
     pub async fn edit_order (
-        &mut self,
+        &self,
         order_id: String,
         instrument_id: u64,
         is_buy: bool,
@@ -462,7 +466,7 @@ impl AevoClient {
         Ok(new_order_id)
     }
 
-    pub async fn cancel_order(&mut self, order_id : String) -> Result<()>{
+    pub async fn cancel_order(&self, order_id : String) -> Result<()>{
         let request = WsRequest{
             op: "cancel_order".to_string(), 
             data: WsRequestData::CancelOrderData { order_id: order_id },
@@ -476,7 +480,7 @@ impl AevoClient {
         Ok(())
     }
 
-    pub async fn cancel_all_orders(&mut self) -> Result<()> {
+    pub async fn cancel_all_orders(&self) -> Result<()> {
         let request = WsRequest{
             op: "cancel_all_orders".to_string(), 
             data: WsRequestData::CancelAllOrdersData { },

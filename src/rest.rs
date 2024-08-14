@@ -439,7 +439,7 @@ impl AevoClient {
     }
 
     pub async fn rest_create_order (
-        &mut self, 
+        &self, 
         instrument_id: u64, 
         is_buy: bool, 
         limit_price: f64, 
@@ -475,7 +475,7 @@ impl AevoClient {
     }
 
     pub async fn rest_create_market_order (
-        &mut self, 
+        &self, 
         instrument_id: u64, 
         is_buy: bool, 
         quantity: f64
