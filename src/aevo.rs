@@ -169,8 +169,7 @@ impl AevoClient {
     }
 
     pub fn parse_response(msg : Message) -> Result<WsResponse> {
-        let msg_txt = msg.into_text()?;
-        info!("Parsing the following message: {}", msg_txt); 
+        let msg_txt = msg.into_text()?; 
         Ok(serde_json::from_str::<WsResponse>(&msg_txt)?)
     }
 
