@@ -2,14 +2,17 @@ pub mod aevo;
 pub mod env; 
 pub mod signature; 
 pub mod rest; 
+pub mod ws_structs;
 
 #[cfg(test)]
 mod tests {
     use aevo::{AevoClient, ClientCredentials};
+    use log::info;
     use rest::RestResponse;
     use test_log::test;
     use tokio::{join, sync::mpsc};
     use tokio_tungstenite::tungstenite::Message;
+    use ws_structs::WsResponse;
     use super::*;
 
     #[test(tokio::test)]
@@ -270,7 +273,7 @@ mod tests {
         
         let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap();
 
-        let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
+        let (tx, mut rx) = mpsc::unbounded_channel::<WsResponse>(); 
 
         client.subscribe_index("ETH".to_string()).await.unwrap();
 
@@ -303,42 +306,9 @@ mod tests {
         
         let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
-        let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
+        let (tx, mut rx) = mpsc::unbounded_channel::<WsResponse>(); 
 
         client.subscribe_fills().await.unwrap();
-
-        let task1 = tokio::spawn(async move {
-            client.read_messages(tx).await.unwrap()
-        });
-
-        let task2 = tokio::spawn(async move {
-            loop {
-                let msg = rx.recv().await; 
-                match msg {
-                    Some(data) => println!("The data: {:?}", data), 
-                    None => {}
-                }
-            }
-        });  
-
-        join!(task1, task2); 
-    }
-
-    #[test(tokio::test)]
-    async fn test_subscribe_markprice() {
-        let credentials = ClientCredentials {
-            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
-            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
-            api_secret : std::env::var("API_SECRET").unwrap(), 
-            api_key : std::env::var("API_KEY").unwrap(), 
-            wallet_private_key : None
-        };
-        
-        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
-
-        let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
-
-        client.subscribe_markprice("ETH".to_string()).await.unwrap();
 
         let task1 = tokio::spawn(async move {
             client.read_messages(tx).await.unwrap()
@@ -369,7 +339,7 @@ mod tests {
         
         let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
-        let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
+        let (tx, mut rx) = mpsc::unbounded_channel::<WsResponse>(); 
 
         client.subscribe_orderbook("ETH".to_string()).await.unwrap();
 
@@ -413,6 +383,26 @@ mod tests {
         ).await.unwrap(); 
 
         println!("Order id: {}", order_id); 
+
+        let (tx, mut rx) = mpsc::unbounded_channel::<WsResponse>();
+
+        let task1 = tokio::spawn(async move {
+            client.read_messages(tx).await.unwrap()
+        });
+
+        let task2 = tokio::spawn(async move {
+            loop {
+                let msg = rx.recv().await; 
+                match msg {
+                    Some(data) => println!("The data: {:?}", data), 
+                    None => {}
+                }
+            }
+        });  
+
+        join!(task1, task2); 
+
+
     }
 
     #[test(tokio::test)]

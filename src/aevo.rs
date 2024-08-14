@@ -1,5 +1,4 @@
 use std::sync::Arc;
-
 use log::{info, debug, error};
 use tokio_tungstenite::{connect_async, WebSocketStream, MaybeTlsStream, tungstenite::protocol::Message};
 use tokio::{net::TcpStream, sync::{mpsc::UnboundedSender, Mutex}};  
@@ -9,50 +8,7 @@ use eyre::{eyre, Result};
 use tokio_tungstenite::tungstenite;
 use reqwest;
 use chrono::prelude::*;
-use crate::env::ENV;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct WsRequest {
-    op : String, 
-    data : WsRequestData, 
-    id : Option<u64>
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(untagged)]
-pub enum WsRequestData {
-    AuthData {key : String, secret : String}, 
-    ChannelData (Vec<String>),
-    OrderData {
-        maker : String, 
-        is_buy : bool, 
-        instrument: String, 
-        limit_price: String, 
-        amount : String, 
-        salt : String, 
-        signature : String, 
-        post_only : bool, 
-        mmp : bool,
-        timestamp : String,
-    }, 
-    EditOrderData {
-        order_id : String, 
-        maker : String, 
-        is_buy : bool, 
-        instrument: String, 
-        limit_price: String, 
-        amount : String, 
-        salt : String, 
-        signature : String, 
-        post_only : bool, 
-        mmp : bool,
-        timestamp : String,
-    }, 
-    CancelOrderData {
-        order_id : String
-    }, 
-    CancelAllOrdersData {}
-} 
+use crate::{env::ENV, ws_structs::*};
 
 pub struct AevoClient {
     pub credentials : Option<ClientCredentials>, 
@@ -167,7 +123,7 @@ impl AevoClient {
         Ok(())
     }
 
-    pub async fn read_messages(&self, tx : UnboundedSender<Message>) -> Result<()> {
+    pub async fn read_messages(&self, tx : UnboundedSender<WsResponse>) -> Result<()> {
         loop {
             let msg = {
                 let mut reader_guard = self.reader.lock().await; 
@@ -183,10 +139,16 @@ impl AevoClient {
 
             match msg {
                 Some(Ok(msg)) => {
-                    match tx.send(msg) {
-                        Err(e) => error!("Problem sending data through unbounded channel: {}", e), 
-                        _ => {}
-                    };
+                    match AevoClient::parse_response(msg) {
+                        Ok(response) => {
+                            match tx.send(response) {
+                                Err(e) => error!("Problem sending data through unbounded channel: {}", e), 
+                                _ => {}
+                            };
+                        }, 
+                        Err(e) => error!("Problem parsing the response: {}", e)
+                    }
+ 
                 }, 
                 Some(Err(e)) => {
                     match e {
@@ -204,6 +166,12 @@ impl AevoClient {
                 None => {}
             }
         }
+    }
+
+    pub fn parse_response(msg : Message) -> Result<WsResponse> {
+        let msg_txt = msg.into_text()?;
+        info!("Parsing the following message: {}", msg_txt); 
+        Ok(serde_json::from_str::<WsResponse>(&msg_txt)?)
     }
 
     pub async fn send (&self, data: &Message) -> Result<()>{
@@ -262,17 +230,6 @@ impl AevoClient {
         let request = WsRequest {
             op : "subscribe".to_string(),
             data : WsRequestData::ChannelData(vec![channel]), 
-            id: None
-        };
-
-        let msg = Message::from(serde_json::to_string(&request)?); 
-        self.send(&msg).await
-    }
-
-    pub async fn subscribe_markprice(&self, asset: String) -> Result<()> {
-        let request = WsRequest {
-            op : "subscribe".to_string(),
-            data : WsRequestData::ChannelData(vec![format!("markprice:{}:OPTION", asset)]), 
             id: None
         };
 
