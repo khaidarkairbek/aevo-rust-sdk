@@ -1,4 +1,4 @@
-use crate::aevo::{AevoClient, PRICE_DECIMALS, AMOUNT_DECIMALS};
+use crate::aevo::{AevoClient, ClientCredentials, AMOUNT_DECIMALS, PRICE_DECIMALS};
 use std::collections::HashMap;
 use alloy::primitives::U256; 
 use log::{info, debug, error};
@@ -288,11 +288,11 @@ impl AevoClient {
 
     pub async fn rest_cancel_order(&self, order_id : String) -> Result<RestResponse> {
         info!("Cancelling order {}", order_id); 
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let response = self.client
                 .delete(format!("{}/orders/{}", self.env.get_config().rest_url, order_id))
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             let data = response.json::<RestResponse>().await?;
             Ok(data)
@@ -303,11 +303,11 @@ impl AevoClient {
 
     pub async fn rest_get_account(&self) -> Result<RestResponse> {
         info!("Getting account info"); 
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let response = self.client
                 .get(format!("{}/account", self.env.get_config().rest_url))
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             let data = response.json::<RestResponse>().await?;
             Ok(data)
@@ -318,11 +318,11 @@ impl AevoClient {
 
     pub async fn rest_get_portfolio(&self) -> Result<RestResponse> {
         info!("Getting portfolio info");
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let response = self.client
                 .get(format!("{}/portfolio", self.env.get_config().rest_url))
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?;  
 
             let data = response.json::<RestResponse>().await?;
@@ -334,11 +334,11 @@ impl AevoClient {
 
     pub async fn rest_get_open_orders(&self) -> Result<RestResponse> {
         info!("Getting open orders");
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let response = self.client
                 .get(format!("{}/orders", self.env.get_config().rest_url))
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             info!("Response: {:?}", response); 
             let data = response.json::<RestResponse>().await?;
@@ -351,7 +351,7 @@ impl AevoClient {
     pub async fn rest_cancel_all_orders(&self, instrument_type: Option<String>, asset: Option<String> ) -> Result<RestResponse> {
         info!("Cancelling all orders"); 
 
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let mut body = HashMap::<String, String>::new(); 
             if let Some(i_t) = instrument_type {
                 body.insert("instrument_type".to_string(), i_t); 
@@ -364,8 +364,8 @@ impl AevoClient {
             let response = self.client
                 .delete(format!("{}/orders-all", self.env.get_config().rest_url))
                 .json(&body)
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             let data = response.json::<RestResponse>().await?;
             Ok(data)
@@ -396,8 +396,8 @@ impl AevoClient {
             timestamp
         ).await?; 
 
-        let wallet_address= match &self.wallet_address {
-            Some(address) => address.clone(), 
+        let wallet_address= match &self.credentials {
+            Some(ClientCredentials {wallet_address, ..}) => wallet_address.clone(), 
             None => return Err(eyre!("Order sign error: Wallet address not set"))
         };
         
@@ -446,7 +446,7 @@ impl AevoClient {
         quantity: f64, 
         post_only: Option<bool>
     ) -> Result<RestResponse>{
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let (data, order_id) = self.create_order_rest(
                 instrument_id, 
                 is_buy, 
@@ -464,8 +464,8 @@ impl AevoClient {
             let response = self.client
                 .post(format!("{}/orders", self.env.get_config().rest_url))
                 .json(&data)
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             let data = response.json::<RestResponse>().await?;
             Ok(data)
@@ -480,7 +480,7 @@ impl AevoClient {
         is_buy: bool, 
         quantity: f64
     ) -> Result<RestResponse> {
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let (data, order_id) = self.create_order_rest(
                 instrument_id, 
                 is_buy, 
@@ -498,8 +498,8 @@ impl AevoClient {
             let response = self.client
                 .post(format!("{}/orders", self.env.get_config().rest_url))
                 .json(&data)
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
 
             info!("Response: {:?}", response); 
@@ -518,7 +518,7 @@ impl AevoClient {
         to: Option<String>, 
         data: Option<U256>,
     ) -> Result<RestResponse> {
-        if let (Some(key), Some(secret)) = (&self.api_key, &self.api_secret) {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let collateral = match collateral {
                 Some(val) => val, 
                 None => self.env.get_addresses().l1_usdc,
@@ -537,8 +537,8 @@ impl AevoClient {
             let response = self.client
                 .post(format!("{}/withdraw", self.env.get_config().rest_url))
                 .json(&data)
-                .header("AEVO-KEY", key)
-                .header("AEVO-SECRET", secret)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             
             let data = response.json::<RestResponse>().await?;
@@ -562,8 +562,8 @@ impl AevoClient {
             None => U256::ZERO
         };
 
-        let wallet_address= match &self.wallet_address {
-            Some(address) => address.clone(), 
+        let wallet_address= match &self.credentials {
+            Some(ClientCredentials{wallet_address, ..}) => wallet_address.clone(), 
             None => return Err(eyre!("Order sign error: Wallet address not set"))
         };
 

@@ -5,6 +5,7 @@ pub mod rest;
 
 #[cfg(test)]
 mod tests {
+    use aevo::{AevoClient, ClientCredentials};
     use rest::RestResponse;
     use test_log::test;
     use tokio::{join, sync::mpsc};
@@ -12,36 +13,30 @@ mod tests {
     use super::*;
 
     #[test(tokio::test)]
-    async fn test_open_connection() {
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+    async fn test_open_connection() { 
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
-        client.open_connection().await.unwrap(); 
     }
 
     #[test(tokio::test)]
     async fn test_get_index() {
-        let client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : None, 
-            api_key : None,
-            api_secret : None, 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let index = client.get_index("ETH".to_string()).await.unwrap();
 
@@ -57,16 +52,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_get_markets() {
-        let client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : None, 
-            api_key : None,
-            api_secret : None, 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let markets = client.get_markets("ETH".to_string()).await.unwrap();
 
@@ -82,19 +76,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_get_account() {
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let account = client.rest_get_account().await.unwrap();
 
@@ -110,19 +100,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_get_portfolio() {
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let portfolio = client.rest_get_portfolio().await.unwrap();
 
@@ -138,19 +124,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_get_open_orders() {
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: None, 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let open_orders = client.rest_get_open_orders().await.unwrap();
 
@@ -166,20 +148,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_create_order() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let (order, order_id) = client.create_order_rest(
             1, 
@@ -198,20 +175,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_open_order() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let response = client.rest_create_order(
             1, 
@@ -233,20 +205,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_open_market_order() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let response = client.rest_create_market_order(
             1, 
@@ -266,20 +233,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_cancel_all_orders() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let response = client.rest_cancel_all_orders(
             None, 
@@ -298,22 +260,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_subscribe_index() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap();
 
         let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
 
@@ -338,22 +293,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_subscribe_fills() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
 
@@ -378,22 +326,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_subscribe_markprice() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
 
@@ -418,22 +359,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_subscribe_orderbook() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let (tx, mut rx) = mpsc::unbounded_channel::<Message>(); 
 
@@ -458,22 +392,15 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_ws_open_order() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         let order_id = client.create_order(
             1, 
@@ -490,25 +417,18 @@ mod tests {
 
     #[test(tokio::test)]
     async fn test_ws_cancel_order() {
-        let signing_key = std::env::var("SIGNING_KEY").unwrap();
-        let wallet_address = std::env::var("WALLET_ADDRESS").unwrap(); 
-        let api_secret = std::env::var("API_SECRET").unwrap(); 
-        let api_key = std::env::var("API_KEY").unwrap(); 
-        let mut client = aevo::AevoClient {
-            signing_key: Some(signing_key), 
-            wallet_address : Some(wallet_address), 
-            api_key : Some(api_key),
-            api_secret : Some(api_secret), 
-            wallet_private_key : None, 
-            connection: None, 
-            client: reqwest::Client::new(), 
-            env: env::ENV::MAINNET,
+        let credentials = ClientCredentials {
+            signing_key : std::env::var("SIGNING_KEY").unwrap(), 
+            wallet_address : std::env::var("WALLET_ADDRESS").unwrap(), 
+            api_secret : std::env::var("API_SECRET").unwrap(), 
+            api_key : std::env::var("API_KEY").unwrap(), 
+            wallet_private_key : None
         };
-
-        client.open_connection().await.unwrap();
+        
+        let mut client = AevoClient::new(Some(credentials), env::ENV::MAINNET).await.unwrap(); 
 
         client.cancel_order(
-            "0xb6a96d4214697b20a904d2c38973a2a4e301a62a7b6981275c679595549acc43".to_string()
+            "0x3dbf007fc71ca02327fee4591e5a1f1fce63dc3f97d916ecfd887c46745a2820".to_string()
         ).await.unwrap(); 
     }
 }

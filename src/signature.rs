@@ -47,15 +47,17 @@ impl AevoClient {
             }
         };
 
-        let wallet_address: Address = self.wallet_address
+        let wallet_address: Address = self.credentials
             .as_ref()
-            .ok_or_else(|| eyre!("Order sign error: Wallet address not set"))? 
+            .ok_or_else(|| eyre!("Order sign error: Wallet address not set"))?
+            .wallet_address
             .parse()?;  
         
 
-        let signing_key = self.signing_key
+        let signing_key = &self.credentials
             .as_ref()
-            .ok_or_else(|| eyre!("Order sign error: Signing key not set"))?; 
+            .ok_or_else(|| eyre!("Order sign error: Signing key not set"))?
+            .signing_key; 
 
         let order = Order {
             maker: wallet_address, 
@@ -93,9 +95,10 @@ impl AevoClient {
     ) -> Result<(U256, String, String)>{
         let salt = U256::from(rand::random::<u64>());
 
-        let signing_key = self.signing_key
+        let signing_key = &self.credentials
             .as_ref()
-            .ok_or_else(|| eyre!("Withdraw sign error: Signing key not set"))?; 
+            .ok_or_else(|| eyre!("Order sign error: Signing key not set"))?
+            .signing_key; 
 
         let withdraw = Withdraw {
             collateral: collateral.parse()?, 

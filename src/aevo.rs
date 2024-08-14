@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use log::{info, debug, error};
 use tokio_tungstenite::{connect_async, WebSocketStream, MaybeTlsStream, tungstenite::protocol::Message};
-use tokio::{net::TcpStream, sync::mpsc::UnboundedSender};  
+use tokio::{net::TcpStream, sync::{mpsc::UnboundedSender, Mutex}};  
 use serde_derive::{Deserialize, Serialize};
-use futures::{ SinkExt, StreamExt };
+use futures::{ stream::{SplitSink, SplitStream}, SinkExt, StreamExt };
 use eyre::{eyre, Result}; 
 use tokio_tungstenite::tungstenite;
 use reqwest;
@@ -53,36 +55,63 @@ pub enum WsRequestData {
 } 
 
 pub struct AevoClient {
-    pub signing_key : Option<String>, 
-    pub wallet_address : Option<String>, 
-    pub wallet_private_key : Option<String>, 
-    pub api_key : Option<String>, 
-    pub api_secret : Option<String>, 
-    pub connection : Option<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+    pub credentials : Option<ClientCredentials>, 
+    pub writer: Arc<Mutex<Option<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>>>,
+    pub reader: Arc<Mutex<Option<SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>>>>,
     pub client : reqwest::Client, 
     pub env : ENV,
+}
+
+pub struct ClientCredentials {
+    pub signing_key : String, 
+    pub wallet_address : String, 
+    pub wallet_private_key : Option<String>, 
+    pub api_key : String, 
+    pub api_secret : String, 
 }
 
 pub const PRICE_DECIMALS: u32 = 6; 
 pub const AMOUNT_DECIMALS: u32 = 6;
 
 impl AevoClient {
-    pub async fn open_connection(&mut self)  -> Result<()>{
+    pub async fn new(
+        credentials: Option<ClientCredentials>, 
+        env : ENV
+    ) -> Result<AevoClient> {
+
+        let mut client = AevoClient {
+            credentials : credentials, 
+            writer : Arc::new(Mutex::new(None)), 
+            reader : Arc::new(Mutex::new(None)),
+            client : reqwest::Client::new(), 
+            env: env
+        }; 
+
+        let ws_stream = client.open_connection().await?; 
+
+        let (writer, reader) = ws_stream.split(); 
+
+        client.writer = Arc::new(Mutex::new(Some(writer)));
+        client.reader = Arc::new(Mutex::new(Some(reader)));
+
+        Ok(client)
+    }
+
+    pub async fn open_connection(&self) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>>{
         info!("Opening Aevo websocket connection..."); 
 
         let ws_url = self.env.get_config().ws_url; 
 
-        let connection_response = connect_async(&ws_url).await?; 
-        debug!("Connection response: {:?}", connection_response.1); 
-        self.connection = Some(connection_response.0); 
+        let (mut ws_stream, _) = connect_async(&ws_url).await?;
+        
 
-        match (&self.api_key, &self.api_secret, &self.wallet_address) {
-            (Some(key), Some(secret), Some(_)) => {
+        match &self.credentials {
+            Some(credentials) => {
                 info!("Connecting to {}", ws_url); 
 
                 let auth_request = WsRequest {
                     op : "auth".to_string(),
-                    data : WsRequestData::AuthData { key: key.to_string(), secret: secret.to_string() },
+                    data : WsRequestData::AuthData { key: credentials.api_key.to_string(), secret: credentials.api_secret.to_string() },
                     id : Some(1)
                 }; 
 
@@ -90,66 +119,89 @@ impl AevoClient {
 
                 debug!("The auth message: {:?}", auth_msg); 
 
-                if let Some(connection) = &mut self.connection {
-                    connection.send(auth_msg).await?;
-                }
+                ws_stream.send(auth_msg).await?;
             }, 
-            (_, _, _) => info!("Api key and/or wallet address not defined: No authentication is set in initial connection")
+            None => info!("Api key and/or wallet address not defined: No authentication is set in initial connection")
         }
 
-        Ok(())
+        Ok(ws_stream)
     }
 
-    pub async fn close_connection(&mut self) -> Result<()> {
-        info!("Closing connection"); 
-        if let Some(mut connection) = self.connection.take() {
-            connection.close(None).await?; 
+    pub async fn close_connection(&self) -> Result<()> {
+        info!("Closing connection");
+
+        let mut reader = self.reader.lock().await; 
+        let mut writer = self.writer.lock().await;
+
+        if let (Some(rx), Some(tx)) = (reader.take(), writer.take()) { 
+            let mut ws_stream = tx.reunite(rx)?; 
+            ws_stream.close(None).await?;
         }
+
         info!("Connection closed");
 
         Ok(())
     }
 
-    pub async fn reconnect(&mut self) -> Result<()> {
+    pub async fn reconnect(&self) -> Result<()> {
         info!("Trying to reconnect Aevo websocket..."); 
 
         self.close_connection().await?;
-        self.open_connection().await 
+
+        let ws_stream = self.open_connection().await?;
+
+        let (writer, reader) = ws_stream.split(); 
+
+        // Update the writer
+        {
+            let mut writer_guard = self.writer.lock().await;
+            *writer_guard = Some(writer);
+        }
+
+        // Update the reader
+        {
+            let mut reader_guard = self.reader.lock().await;
+            *reader_guard = Some(reader);
+        }
+
+        Ok(())
     }
 
-    pub async fn read_messages(&mut self, tx : UnboundedSender<Message>) -> Result<()> {
+    pub async fn read_messages(&self, tx : UnboundedSender<Message>) -> Result<()> {
         loop {
-            match &mut self.connection {
-                Some(ws_stream) => {
-                    tokio::select! {
-                        message = ws_stream.next() => {
-                            match message {
-                                Some(Ok(msg)) => {
-                                    match tx.send(msg) {
-                                        Err(e) => error!("Problem sending data through unbounded channel: {}", e), 
-                                        _ => {}
-                                    }; 
-                                }, 
-                                Some(Err(e)) => {
-                                    match e {
-                                        tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed => {
-                                            info!("Aevo websocket connection close with error : {}", e);
-                                            self.reconnect().await?; 
-                                        },
-                                        _ => {
-                                            error!("Message reading error : {}", e);
-                                        }
-                                    }
-                                    error!("Error reading message: {}", e);
-                                },
-                                None => {}
-                            }
+            let msg = {
+                let mut reader_guard = self.reader.lock().await; 
+                match reader_guard.as_mut() {
+                    Some(ws_stream) => {
+                        ws_stream.next().await
+                    }, 
+                    None => {
+                        return Err(eyre!("No connection is set"))
+                    }
+                }
+            }; 
+
+            match msg {
+                Some(Ok(msg)) => {
+                    match tx.send(msg) {
+                        Err(e) => error!("Problem sending data through unbounded channel: {}", e), 
+                        _ => {}
+                    };
+                }, 
+                Some(Err(e)) => {
+                    match e {
+                        tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed => {
+                            info!("Aevo websocket connection close with error : {}", e);
+                            
+                            self.reconnect().await?; 
+                        },
+                        _ => {
+                            error!("Message reading error : {}", e);
                         }
                     }
-                }, 
-                None => {
-                    return Err(eyre!("No connection is set"))
-                }
+                    error!("Error reading message: {}", e);
+                },
+                None => {}
             }
         }
     }
@@ -158,7 +210,8 @@ impl AevoClient {
         let mut attempts = 0; 
         const MAX_ATTEMPTS: u8 = 2; 
         while attempts < MAX_ATTEMPTS {
-            match &mut self.connection {
+            let mut writer_guard = self.writer.lock().await;
+            match writer_guard.as_mut() {
                 Some(connection) => {
                     match connection.send(data.clone()).await {
                         Ok(_) => return Ok(()),
@@ -296,8 +349,8 @@ impl AevoClient {
             timestamp
         ).await?; 
 
-        let wallet_address= match &self.wallet_address {
-            Some(address) => address.clone(), 
+        let wallet_address= match &self.credentials {
+            Some(ClientCredentials{wallet_address, ..}) => wallet_address.clone(), 
             None => return Err(eyre!("Order sign error: Wallet address not set"))
         };
         
@@ -372,8 +425,8 @@ impl AevoClient {
             timestamp
         ).await?; 
 
-        let wallet_address= match &self.wallet_address {
-            Some(address) => address.clone(), 
+        let wallet_address= match &self.credentials {
+            Some(ClientCredentials{wallet_address, ..}) => wallet_address.clone(), 
             None => return Err(eyre!("Order sign error: Wallet address not set"))
         };
 
