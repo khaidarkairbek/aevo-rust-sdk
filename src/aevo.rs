@@ -226,6 +226,17 @@ impl AevoClient {
         self.send(&msg).await
     }
 
+    pub async fn subscribe_book_ticker(&self, asset: String, instrument_type: String) -> Result<()> {
+        let request = WsRequest {
+            op : "subscribe".to_string(),
+            data : WsRequestData::ChannelData(vec![format!("book-ticker:{}:{}", asset, instrument_type)]), 
+            id: None
+        };
+
+        let msg = Message::from(serde_json::to_string(&request)?); 
+        self.send(&msg).await
+    }
+
     pub async fn subscribe_ticker(&self, channel: String) -> Result<()> {
         let request = WsRequest {
             op : "subscribe".to_string(),
