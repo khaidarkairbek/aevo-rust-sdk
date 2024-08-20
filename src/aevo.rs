@@ -170,7 +170,7 @@ impl AevoClient {
 
     pub fn parse_response(msg : Message) -> Result<WsResponse> {
         let msg_txt = msg.into_text()?; 
-        Ok(serde_json::from_str::<WsResponse>(&msg_txt)?)
+        serde_json::from_str::<WsResponse>(&msg_txt).map_err(|e| eyre!("Error : {}; Message : {}", e, msg_txt))
     }
 
     pub async fn send (&self, data: &Message) -> Result<()>{
