@@ -24,134 +24,134 @@ pub enum RestResponse {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct ErrorData {
-    error : String
+    pub error : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct WithdrawData {
-    timestamp : String, 
-    price : String
+    pub timestamp : String, 
+    pub price : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetIndexData {
-    timestamp : String, 
-    price : String
+    pub timestamp : String, 
+    pub price : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetAccountData {
-    account : String, 
-    username : String, 
-    account_type : String, 
-    portfolio : bool, 
-    equity : String, 
-    balance : String, 
-    credit : String, 
-    credited : bool, 
-    collaterals : Vec<CollateralInfo>, 
-    available_balance : String, 
-    initial_margin : String, 
-    maintenance_margin : String, 
-    email_address : String, 
-    in_liquidation : bool, 
-    referral_bonus : f64, 
-    has_been_referred : bool, 
-    referrer : Option<String>, 
-    intercom_hash : String, 
-    permissions : Option<Vec<String>>,
-    positions : Vec<String>, //should be position type
-    signing_keys : Vec<SigningKeyInfo>, 
-    api_keys : Vec<ApiKeyInfo>, 
-    fee_structures : Vec<FeeStructureInfo>, 
-    leverages : Vec<LeverageInfo>, 
-    manual_mode : bool, 
-    manual_withdrawals : Vec<ManualWithdrawalInfo>
+    pub account : String, 
+    pub username : String, 
+    pub account_type : String, 
+    pub portfolio : bool, 
+    pub equity : String, 
+    pub balance : String, 
+    pub credit : String, 
+    pub credited : bool, 
+    pub collaterals : Vec<CollateralInfo>, 
+    pub available_balance : String, 
+    pub initial_margin : String, 
+    pub maintenance_margin : String, 
+    pub email_address : String, 
+    pub in_liquidation : bool, 
+    pub referral_bonus : f64, 
+    pub has_been_referred : bool, 
+    pub referrer : Option<String>, 
+    pub intercom_hash : String, 
+    pub permissions : Option<Vec<String>>,
+    pub positions : Vec<String>, //should be position type
+    pub signing_keys : Vec<SigningKeyInfo>, 
+    pub api_keys : Vec<ApiKeyInfo>, 
+    pub fee_structures : Vec<FeeStructureInfo>, 
+    pub leverages : Vec<LeverageInfo>, 
+    pub manual_mode : bool, 
+    pub manual_withdrawals : Vec<ManualWithdrawalInfo>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GetPortfolioData {
-    balance : String, 
-    pnl : String, 
-    realized_pnl : String, 
-    profit_factor : String, 
-    win_rate : String, 
-    sharpe_ratio : String, 
-    greeks : Vec<PortfolioGreeks>, 
-    user_margin : UsedMarginInfo
+    pub balance : String, 
+    pub pnl : String, 
+    pub realized_pnl : String, 
+    pub profit_factor : String, 
+    pub win_rate : String, 
+    pub sharpe_ratio : String, 
+    pub greeks : Vec<PortfolioGreeks>, 
+    pub user_margin : UsedMarginInfo
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DeleteOrdersAllData {
-    success : bool, 
-    order_ids : Vec<String>
+    pub success : bool, 
+    pub order_ids : Vec<String>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct DeleteOrderData {
-    order_id : String
+    pub order_id : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct RestWithdraw {
-    account : String, 
-    collateral : String, 
-    to : String, 
-    amount : String, 
-    salt : String, 
-    signature : String, 
-    data : Option<String>
+    pub account : String, 
+    pub collateral : String, 
+    pub to : String, 
+    pub amount : String, 
+    pub salt : String, 
+    pub signature : String, 
+    pub data : Option<String>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct RestOrder {
-    maker : String, 
-    is_buy : bool, 
-    instrument: String, 
-    limit_price: String, 
-    amount : String, 
-    salt : String, 
-    signature : String, 
-    post_only : bool, 
-    reduce_only : bool, 
-    close_position : bool, 
-    timestamp : String, 
-    trigger : Option<String>, 
-    stop : Option<String>
+    pub maker : String, 
+    pub is_buy : bool, 
+    pub instrument: String, 
+    pub limit_price: String, 
+    pub amount : String, 
+    pub salt : String, 
+    pub signature : String, 
+    pub post_only : bool, 
+    pub reduce_only : bool, 
+    pub close_position : bool, 
+    pub timestamp : String, 
+    pub trigger : Option<String>, 
+    pub stop : Option<String>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct OrderData {
-    order_id : String, 
-    account : String, 
-    instrument_id : String, 
-    instrument_name : String, 
-    instrument_type : String, 
-    order_type : String, 
-    side : String, // buy  or sell
-    amount : String, 
-    price : String, 
-    avg_price : Option<String>, 
-    filled : String, 
-    order_status : String,
-    post_only : Option<bool>, 
-    reduce_only : Option<bool>, 
-    initial_margin : Option<String>, 
-    option_type : Option<String>, 
-    iv : Option<String>, 
-    expiry : Option<String>, 
-    strike : Option<String>, 
-    created_timestamp : Option<String>, 
-    timestamp : String, 
-    system_type : String, 
-    time_in_force : Option<String>, 
-    stop : Option<String>, 
-    trigger : Option<String>, 
-    close_position : Option<bool>, 
-    partial_position : Option<bool>,
-    isolated_margin : Option<String>, 
-    parent_order_id : Option<String>,
-    self_trade_prevention : Option<String>
+    pub order_id : String, 
+    pub account : String, 
+    pub instrument_id : String, 
+    pub instrument_name : String, 
+    pub instrument_type : String, 
+    pub order_type : String, 
+    pub side : String, // buy  or sell
+    pub amount : String, 
+    pub price : String, 
+    pub avg_price : Option<String>, 
+    pub filled : String, 
+    pub order_status : String,
+    pub post_only : Option<bool>, 
+    pub reduce_only : Option<bool>, 
+    pub initial_margin : Option<String>, 
+    pub option_type : Option<String>, 
+    pub iv : Option<String>, 
+    pub expiry : Option<String>, 
+    pub strike : Option<String>, 
+    pub created_timestamp : Option<String>, 
+    pub timestamp : String, 
+    pub system_type : String, 
+    pub time_in_force : Option<String>, 
+    pub stop : Option<String>, 
+    pub trigger : Option<String>, 
+    pub close_position : Option<bool>, 
+    pub partial_position : Option<bool>,
+    pub isolated_margin : Option<String>, 
+    pub parent_order_id : Option<String>,
+    pub self_trade_prevention : Option<String>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
