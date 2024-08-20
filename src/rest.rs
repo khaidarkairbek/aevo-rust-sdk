@@ -476,7 +476,7 @@ impl AevoClient {
 
     pub async fn rest_edit_order (
         &self, 
-        order_id : String, 
+        order_id : &String, 
         instrument_id: u64, 
         is_buy: bool, 
         limit_price: f64, 
