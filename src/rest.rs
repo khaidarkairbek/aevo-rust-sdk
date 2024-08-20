@@ -55,7 +55,7 @@ pub enum RestResponse {
         success : bool, 
         order_ids : Vec<String>
     },
-    CreateOrder {
+    CreateEditOrder {
         order_id: String, 
         account: String, 
         instrument_id: String, 
@@ -86,7 +86,7 @@ pub enum RestResponse {
         isolated_margin: Option<String>, 
         parent_order_id: Option<String>, 
         self_trade_prevention: Option<String>
-    }, 
+    },
     Withdraw{success : bool}, 
     Error{ error : String }
 }
@@ -463,6 +463,43 @@ impl AevoClient {
     
             let response = self.client
                 .post(format!("{}/orders", self.env.get_config().rest_url))
+                .json(&data)
+                .header("AEVO-KEY", api_key)
+                .header("AEVO-SECRET", api_secret)
+                .send().await?; 
+            let data = response.json::<RestResponse>().await?;
+            Ok(data)
+        } else {
+            Err(eyre!("Api key and/or secret are not established"))
+        }
+    }
+
+    pub async fn rest_edit_order (
+        &self, 
+        order_id : String, 
+        instrument_id: u64, 
+        is_buy: bool, 
+        limit_price: f64, 
+        quantity: f64, 
+        post_only: Option<bool>
+    ) -> Result<RestResponse> {
+        if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
+            let (data, new_order_id) = self.create_order_rest(
+                instrument_id, 
+                is_buy, 
+                Some(limit_price), 
+                quantity, 
+                post_only, 
+                None, 
+                None, 
+                None, 
+                None,
+            ).await?; 
+    
+            info!("Creating rest order: {:?}", data); 
+    
+            let response = self.client
+                .post(format!("{}/orders/{}", self.env.get_config().rest_url, order_id))
                 .json(&data)
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
