@@ -9,86 +9,87 @@ use chrono::prelude::*;
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[serde(untagged)]
 pub enum RestResponse {
-    GetIndex { timestamp : String, price : String },
-    GetOrders (Vec<OrderInfo>), 
+    GetIndex(GetIndexData),
+    GetOrders (Vec<OrderData>), 
     GetMarkets (Vec<MarketInfo>), 
-    DeleteOrder {order_id : String}, 
-    GetAccount {
-        account : String, 
-        username : String, 
-        account_type : String, 
-        portfolio : bool, 
-        equity : String, 
-        balance : String, 
-        credit : String, 
-        credited : bool, 
-        collaterals : Vec<CollateralInfo>, 
-        available_balance : String, 
-        initial_margin : String, 
-        maintenance_margin : String, 
-        email_address : String, 
-        in_liquidation : bool, 
-        referral_bonus : f64, 
-        has_been_referred : bool, 
-        referrer : Option<String>, 
-        intercom_hash : String, 
-        permissions : Option<Vec<String>>,
-        positions : Vec<String>, //should be position type
-        signing_keys : Vec<SigningKeyInfo>, 
-        api_keys : Vec<ApiKeyInfo>, 
-        fee_structures : Vec<FeeStructureInfo>, 
-        leverages : Vec<LeverageInfo>, 
-        manual_mode : bool, 
-        manual_withdrawals : Vec<ManualWithdrawalInfo>
-    }, 
-    GetPortfolio {
-        balance : String, 
-        pnl : String, 
-        realized_pnl : String, 
-        profit_factor : String, 
-        win_rate : String, 
-        sharpe_ratio : String, 
-        greeks : Vec<PortfolioGreeks>, 
-        user_margin : UsedMarginInfo
-    }, 
-    DeleteOrdersAll {
-        success : bool, 
-        order_ids : Vec<String>
-    },
-    CreateEditOrder {
-        order_id: String, 
-        account: String, 
-        instrument_id: String, 
-        instrument_name: String, 
-        instrument_type: String, 
-        order_type: String, 
-        side: String, 
-        amount: String, 
-        price: String, 
-        avg_price: String, 
-        filled: String, 
-        order_status: String, 
-        post_only: Option<bool>, 
-        reduce_only: Option<bool>, 
-        initial_margin: Option<String>, 
-        option_type: Option<String>, 
-        iv: Option<String>, 
-        expiry: Option<String>,
-        strike: Option<String>, 
-        created_timestamp: Option<String>,
-        timestamp: String, 
-        system_type: String, 
-        time_in_force: Option<String>, 
-        stop: Option<String>, 
-        trigger: Option<String>, 
-        close_position: Option<bool>, 
-        partial_position: Option<bool>, 
-        isolated_margin: Option<String>, 
-        parent_order_id: Option<String>, 
-        self_trade_prevention: Option<String>
-    },
-    Withdraw{success : bool}, 
-    Error{ error : String }
+    DeleteOrder (DeleteOrderData), 
+    GetAccount (GetAccountData), 
+    GetPortfolio (GetPortfolioData), 
+    DeleteOrdersAll (DeleteOrdersAllData),
+    CreateOrder (OrderData),
+    EditOrder (OrderData), 
+    Withdraw (WithdrawData), 
+    Error(ErrorData)
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct ErrorData {
+    error : String
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct WithdrawData {
+    timestamp : String, 
+    price : String
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct GetIndexData {
+    timestamp : String, 
+    price : String
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct GetAccountData {
+    account : String, 
+    username : String, 
+    account_type : String, 
+    portfolio : bool, 
+    equity : String, 
+    balance : String, 
+    credit : String, 
+    credited : bool, 
+    collaterals : Vec<CollateralInfo>, 
+    available_balance : String, 
+    initial_margin : String, 
+    maintenance_margin : String, 
+    email_address : String, 
+    in_liquidation : bool, 
+    referral_bonus : f64, 
+    has_been_referred : bool, 
+    referrer : Option<String>, 
+    intercom_hash : String, 
+    permissions : Option<Vec<String>>,
+    positions : Vec<String>, //should be position type
+    signing_keys : Vec<SigningKeyInfo>, 
+    api_keys : Vec<ApiKeyInfo>, 
+    fee_structures : Vec<FeeStructureInfo>, 
+    leverages : Vec<LeverageInfo>, 
+    manual_mode : bool, 
+    manual_withdrawals : Vec<ManualWithdrawalInfo>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct GetPortfolioData {
+    balance : String, 
+    pnl : String, 
+    realized_pnl : String, 
+    profit_factor : String, 
+    win_rate : String, 
+    sharpe_ratio : String, 
+    greeks : Vec<PortfolioGreeks>, 
+    user_margin : UsedMarginInfo
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct DeleteOrdersAllData {
+    success : bool, 
+    order_ids : Vec<String>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct DeleteOrderData {
+    order_id : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -120,7 +121,7 @@ pub struct RestOrder {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct OrderInfo {
+pub struct OrderData {
     order_id : String, 
     account : String, 
     instrument_id : String, 
@@ -276,14 +277,14 @@ impl AevoClient {
         let response = self.client
             .get(format!("{}/index?asset={}", self.env.get_config().rest_url, asset))
             .send().await?; 
-        let data = response.json::<RestResponse>().await?;
-        Ok(data)
+        let data = response.json::<GetIndexData>().await?;
+        Ok(RestResponse::GetIndex(data))
     }   
 
     pub async fn get_markets(&self, asset: String) -> Result<RestResponse> {
         let response = self.client.get(format!("{}/markets?asset={}", self.env.get_config().rest_url, asset)).send().await?; 
-        let data = response.json::<RestResponse>().await?;
-        Ok(data)
+        let data = response.json::<Vec<MarketInfo>>().await?;
+        Ok(RestResponse::GetMarkets(data))
     }
 
     pub async fn rest_cancel_order(&self, order_id : String) -> Result<RestResponse> {
@@ -294,8 +295,8 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<DeleteOrderData>().await?;
+            Ok(RestResponse::DeleteOrder(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -309,8 +310,8 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<GetAccountData>().await?;
+            Ok(RestResponse::GetAccount(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -325,8 +326,8 @@ impl AevoClient {
                 .header("AEVO-SECRET", api_secret)
                 .send().await?;  
 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<GetPortfolioData>().await?;
+            Ok(RestResponse::GetPortfolio(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -341,8 +342,8 @@ impl AevoClient {
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             info!("Response: {:?}", response); 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<Vec<OrderData>>().await?;
+            Ok(RestResponse::GetOrders(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -367,8 +368,8 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<DeleteOrdersAllData>().await?;
+            Ok(RestResponse::DeleteOrdersAll(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -467,8 +468,8 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<OrderData>().await?;
+            Ok(RestResponse::CreateOrder(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -504,8 +505,8 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<OrderData>().await?;
+            Ok(RestResponse::EditOrder(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -541,8 +542,8 @@ impl AevoClient {
 
             info!("Response: {:?}", response); 
             
-            let data = response.json::<RestResponse>().await?;
-            Ok(data)
+            let data = response.json::<OrderData>().await?;
+            Ok(RestResponse::CreateOrder(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }
@@ -578,9 +579,9 @@ impl AevoClient {
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
             
-            let data = response.json::<RestResponse>().await?;
+            let data = response.json::<WithdrawData>().await?;
     
-            Ok(data)
+            Ok(RestResponse::Withdraw(data))
         } else {
             Err(eyre!("Api key and/or secret are not established"))
         }

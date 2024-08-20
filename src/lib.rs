@@ -199,7 +199,7 @@ mod tests {
         println!("Response: {:?}", response); 
 
         match response {
-            RestResponse::CreateEditOrder { .. } => {}, 
+            RestResponse::CreateOrder { .. } => {}, 
             _ => {
                 panic!("Not CreateOrder type: {:?}", response)
             }
@@ -227,7 +227,7 @@ mod tests {
         println!("Response: {:?}", response); 
 
         match response {
-            RestResponse::CreateEditOrder { .. } => {}, 
+            RestResponse::EditOrder { .. } => {}, 
             _ => {
                 panic!("Not CreateOrder type: {:?}", response)
             }
