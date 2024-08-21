@@ -351,7 +351,6 @@ impl AevoClient {
 
     pub async fn rest_cancel_all_orders(&self, instrument_type: Option<String>, asset: Option<String> ) -> Result<RestResponse> {
         info!("Cancelling all orders"); 
-
         if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let mut body = HashMap::<String, String>::new(); 
             if let Some(i_t) = instrument_type {
@@ -497,7 +496,7 @@ impl AevoClient {
                 None,
             ).await?; 
     
-            info!("Creating rest order: {:?}", data); 
+            info!("Editing rest order: {:?}", data); 
     
             let response = self.client
                 .post(format!("{}/orders/{}", self.env.get_config().rest_url, order_id))
@@ -539,8 +538,6 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
-
-            info!("Response: {:?}", response); 
             
             let data = response.json::<OrderData>().await?;
             Ok(RestResponse::CreateOrder(data))
@@ -569,8 +566,7 @@ impl AevoClient {
     
             let (data, withdraw_id) = self.create_withdraw(collateral, to, amount, data).await?;
     
-            info!("Withdrawing {}", withdraw_id); 
-            info!("Withdraw data : {:?}", data); 
+            info!("Withdrawing {}", withdraw_id);
     
             let response = self.client
                 .post(format!("{}/withdraw", self.env.get_config().rest_url))
