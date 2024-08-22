@@ -467,6 +467,7 @@ impl AevoClient {
                 .header("AEVO-KEY", api_key)
                 .header("AEVO-SECRET", api_secret)
                 .send().await?; 
+            debug!("The response is {:?}", response); 
             let data = response.json::<OrderData>().await?;
             Ok(RestResponse::CreateOrder(data))
         } else {
