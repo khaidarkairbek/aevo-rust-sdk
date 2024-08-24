@@ -1,23 +1,23 @@
 use alloy::primitives::U256;
-
+#[derive(Debug)]
 pub enum ENV {
     MAINNET, 
     TESTNET
 }
-
+#[derive(Debug)]
 pub struct Addresses {
     pub l1_bridge : String, 
     pub l1_usdc : String, 
     pub l2_withdraw_proxy : String, 
     pub l2_usdc : String
 }
-
+#[derive(Debug)]
 pub struct Config {
     pub rest_url : String, 
     pub ws_url : String, 
     pub signing_domain : SigningDomain
 }
-
+#[derive(Debug)]
 pub struct SigningDomain {
     pub name: String, 
     pub version : String, 

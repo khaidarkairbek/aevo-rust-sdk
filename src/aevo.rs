@@ -10,6 +10,7 @@ use reqwest;
 use chrono::prelude::*;
 use crate::{env::ENV, ws_structs::*};
 
+#[derive(Debug)]
 pub struct AevoClient {
     pub credentials : Option<ClientCredentials>, 
     pub writer: Arc<Mutex<Option<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>>>,
@@ -18,6 +19,7 @@ pub struct AevoClient {
     pub env : ENV,
 }
 
+#[derive(Debug)]
 pub struct ClientCredentials {
     pub signing_key : String, 
     pub wallet_address : String, 
@@ -264,6 +266,15 @@ impl AevoClient {
             data : WsRequestData::ChannelData(vec![format!("orderbook:{}", instrument_name)]), 
             id: None
         };
+
+        let msg = Message::from(serde_json::to_string(&request)?); 
+        self.send(&msg).await
+    }
+
+    pub async fn ping(&self) -> Result<()> {
+        let request = Ping {
+            op : "ping".to_string()
+        }; 
 
         let msg = Message::from(serde_json::to_string(&request)?); 
         self.send(&msg).await

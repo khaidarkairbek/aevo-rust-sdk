@@ -8,9 +8,15 @@ pub struct WsRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Ping {
+    pub op : String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum WsRequestData {
     AuthData {key : String, secret : String}, 
+    Ping (String),
     ChannelData (Vec<String>),
     OrderData {
         maker : String, 
