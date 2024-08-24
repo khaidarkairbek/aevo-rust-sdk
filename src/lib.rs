@@ -170,6 +170,7 @@ mod tests {
             None, 
             None, 
             None, 
+            None, 
             None
         ).await.unwrap();
 
@@ -193,6 +194,7 @@ mod tests {
             true, 
             2400.0, 
             0.01, 
+            None, 
             None
         ).await.unwrap(); 
 
@@ -227,7 +229,7 @@ mod tests {
         println!("Response: {:?}", response); 
 
         match response {
-            RestResponse::EditOrder { .. } => {}, 
+            RestResponse::CreateOrder { .. } => {}, 
             _ => {
                 panic!("Not CreateOrder type: {:?}", response)
             }

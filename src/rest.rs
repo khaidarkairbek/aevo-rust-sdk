@@ -1,4 +1,5 @@
 use crate::aevo::{AevoClient, ClientCredentials, AMOUNT_DECIMALS, PRICE_DECIMALS};
+use core::time;
 use std::collections::HashMap;
 use alloy::primitives::U256; 
 use log::{info, debug, error};
@@ -117,7 +118,8 @@ pub struct RestOrder {
     pub close_position : bool, 
     pub timestamp : String, 
     pub trigger : Option<String>, 
-    pub stop : Option<String>
+    pub stop : Option<String>, 
+    pub time_in_force : String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -385,7 +387,8 @@ impl AevoClient {
         reduce_only: Option<bool>, 
         close_position: Option<bool>,
         trigger: Option<String>, 
-        stop: Option<String>
+        stop: Option<String>,
+        time_in_force: Option<String>
     ) -> Result<(RestOrder, String)>{
         let timestamp = Utc::now().timestamp();
         let (salt, signature, order_id) = self.sign_order(
@@ -432,7 +435,8 @@ impl AevoClient {
             },
             timestamp : timestamp.to_string(), 
             trigger : trigger, 
-            stop : stop
+            stop : stop,
+            time_in_force : time_in_force.unwrap_or("GTC".to_string())
         }; 
 
         Ok((payload, order_id))
@@ -444,7 +448,8 @@ impl AevoClient {
         is_buy: bool, 
         limit_price: f64, 
         quantity: f64, 
-        post_only: Option<bool>
+        post_only: Option<bool>, 
+        time_in_force: Option<String>
     ) -> Result<RestResponse>{
         if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let (data, order_id) = self.create_order_rest(
@@ -457,6 +462,7 @@ impl AevoClient {
                 None, 
                 None, 
                 None,
+                time_in_force
             ).await?; 
     
             info!("Creating rest order: {:?}", data); 
@@ -482,7 +488,8 @@ impl AevoClient {
         is_buy: bool, 
         limit_price: f64, 
         quantity: f64, 
-        post_only: Option<bool>
+        post_only: Option<bool>, 
+        time_in_force: Option<String>
     ) -> Result<RestResponse> {
         if let Some(ClientCredentials{api_key, api_secret, ..}) = &self.credentials {
             let (data, new_order_id) = self.create_order_rest(
@@ -495,6 +502,7 @@ impl AevoClient {
                 None, 
                 None, 
                 None,
+                time_in_force
             ).await?; 
     
             info!("Editing rest order: {:?}", data); 
@@ -529,6 +537,7 @@ impl AevoClient {
                 None, 
                 None, 
                 None,
+                Some("IOC".to_string())
             ).await?; 
     
             info!("Creating rest market order: {:?}", data); 
